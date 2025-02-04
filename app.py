@@ -1,9 +1,18 @@
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file, session  # Add `session`
 import csv
 import io
 import pandas as pd
+import uuid  # To generate unique session IDs
+from datetime import timedelta
+from flask_session import Session
 
 app = Flask(__name__)
+app.config['SESSION_TYPE'] = 'filesystem'  # Store sessions on disk (better than cookies for multiple users)
+app.config['SESSION_PERMANENT'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)  # Session lasts 1 day
+app.secret_key = 'your_secret_key'  # Change this to a secure key
+
+Session(app)  # Initialize Flask-Session
 
 # In-memory data store for points
 points = []
@@ -29,8 +38,18 @@ def read_csv(file):
 
 @app.route('/')
 def index():
-    return render_template('map.html')
+    # Get session ID from URL parameter
+    session_id = request.args.get("session_id")
 
+    # Generate a new session if not provided
+    if not session_id:
+        session_id = str(uuid.uuid4())
+
+    # Store session ID
+    session['session_id'] = session_id
+
+    return render_template('map.html', session_id=session_id)
+    
 @app.route('/get_points', methods=['GET'])
 def get_points():
     return jsonify(points)

@@ -166,6 +166,19 @@ body {
     </div>
 
     <script>
+            function ensureUniqueSession() {
+               const urlParams = new URLSearchParams(window.location.search);
+               if (!urlParams.has('session_id')) {
+            // Generate a new session_id
+               const newSessionId = crypto.randomUUID();
+               urlParams.set('session_id', newSessionId);
+               window.location.search = urlParams.toString();  // Reload with new session_id
+        }
+    }
+
+    // Call function on page load
+    ensureUniqueSession();
+
         const map = L.map('map').setView([20.5937, 78.9629], 5);  // Center on India with zoom level 5
         // Center on the US
 
